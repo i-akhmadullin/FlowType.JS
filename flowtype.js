@@ -1,7 +1,7 @@
 /*
 * If you create a derivative, please leave this text intact:
 *
-* FlowType.JS 1.0
+* FlowTypeVanilla.JS 1.0
 * Copyright (c) 2013, Simple Focus http://simplefocus.com/
 *
 * FlowType.JS by Simple Focus (http://simplefocus.com/)
@@ -12,47 +12,41 @@
 * Thanks to Giovanni Difeterici (http://www.gdifeterici.com/)
 */
 
-(function($) {
-   $.fn.flowtype = function(options) {
+function flowtype(els, options) {
 
 // Establish default settings/variables
 // ====================================
-      var settings = $.extend({
-         maximum   : 9999,
-         minimum   : 1,
-         maxFont   : 9999,
-         minFont   : 1,
-         fontRatio : 35,
-         lineRatio : 1.45
-      }, options),
+   this.settings = {
+      maximum   : 9999,
+      minimum   : 1,
+      maxFont   : 9999,
+      minFont   : 1,
+      fontRatio : 35,
+      lineRatio : 1.45
+   };
+   var settings = this.settings;
+   for ( var i in options ) {
+      this.settings[i] = options[i];
+   }
 
 // Do the magic math
 // =================
-      changes = function(el) {
-         var $el = $(el),
-            elw = $el.width(),
-            width = elw > settings.maximum ? settings.maximum : elw < settings.minimum ? settings.minimum : elw,
-            fontBase = width / settings.fontRatio,
-            fontSize = fontBase > settings.maxFont ? settings.maxFont : fontBase < settings.minFont ? settings.minFont : fontBase;
+   function changes(e,el) {
+      var elw = parseInt(document.defaultView.getComputedStyle(el, null).getPropertyValue('width'),10), //em, rem?
+         width = elw > settings.maximum ? settings.maximum : elw < settings.minimum ? settings.minimum : elw,
+         fontBase = width / settings.fontRatio,
+         fontSize = fontBase > settings.maxFont ? settings.maxFont : fontBase < settings.minFont ? settings.minFont : fontBase;
 
-         $el.css({
-            'font-size'   : fontSize + 'px',
-            'line-height' : fontSize * settings.lineRatio + 'px'
-         });
-      };
+      el.style.fontSize = fontSize + 'px';
+      el.style.lineHeight = fontSize * settings.lineRatio + 'px';
+   }
 
 // Make the magic visible
 // ======================
-      return this.each(function() {
-         
-      // Context for resize callback
-         var that = this;
-         
-      // Set changes on load
-         changes(this);
-         
-      // Make changes upon resize
-         $(window).resize(function(){changes(that);});
-      });
-   };
-}(jQuery));
+   for (var j = 0; j < els.length; j++) {
+      (function (el) {
+         changes(null, el);
+         window.addEventListener('resize', function(event) { changes(event, el); }, false);
+      }(els[j]));
+   }
+}
